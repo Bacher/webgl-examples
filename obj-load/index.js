@@ -101,7 +101,7 @@ function initBuffers() {
 
 function initTextures() {
     for (let group of tank.groups) {
-        textures[group.material] = createTexture(group.material);
+        textures[group.material] = createTexture(`tank/${group.material}.jpg`);
     }
 }
 
