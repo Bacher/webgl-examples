@@ -6,6 +6,10 @@ const mMove = mat4.create();
 let gl;
 let shaderProgram;
 
+let zoomIn  = false;
+let zoomOut = false;
+let z = -8;
+
 const textures = {};
 
 const vertexShaderText = `
@@ -145,7 +149,7 @@ function drawScene() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100, mView);
-    mat4.translate(mView, [0, -1, -8]);
+    mat4.translate(mView, [0, -2, z]);
     mat4.rotateY(mView, rotateAngle);
 
     mat4.identity(mMove);
@@ -163,9 +167,9 @@ function drawScene() {
     setMatrixUniforms();
 
     for (let group of tank.groups) {
-        // if (group.id !== 'Turret_2') {
-        //     continue;
-        // }
+        if (group.id !== 'Turret_2') {
+            continue;
+        }
 
         gl.bindTexture(gl.TEXTURE_2D, textures[group.material]);
         gl.drawElements(gl.TRIANGLES, group.size * 3, gl.UNSIGNED_SHORT, group.offset * 6);
@@ -186,7 +190,17 @@ let oldTime = 0;
 
 function tick(newTime) {
     if (oldTime) {
-        rotateAngle += 0.001 * (newTime - oldTime);
+        const delta = (newTime - oldTime);
+
+        rotateAngle += 0.001 * delta;
+
+        if (zoomIn) {
+            z += 0.007 * delta * Math.pow(Math.abs(z / 15), 2);
+        } else if (zoomOut) {
+            z -= 0.007 * delta * Math.pow(Math.abs(z / 15), 2);
+        }
+
+        //console.log(Math.log(Math.abs(z)) * 4);
 
         drawScene();
     }
@@ -197,3 +211,19 @@ function tick(newTime) {
 }
 
 setTimeout(tick, 500);
+
+document.addEventListener('keydown', e => {
+    if (e.which === 38) {
+        zoomOut = true;
+    } else if (e.which === 40) {
+        zoomIn = true;
+    }
+});
+
+document.addEventListener('keyup', e => {
+    if (e.which === 38) {
+        zoomOut = false;
+    } else if (e.which === 40) {
+        zoomIn = false;
+    }
+});
